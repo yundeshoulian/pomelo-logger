@@ -1,88 +1,175 @@
 pomelo-logger
 ========
 
-pomelo-logger is a [log4js](https://github.com/nomiddlename/log4js-node) wrapper for [pomelo](https://github.com/NetEase/pomelo) which provides some useful features.  
+pomelo-logger 是 [pomelo](https://github.com/NetEase/pomelo) 框架的日志组件，基于 [log4js](https://github.com/log4js-node/log4js-node) 封装，提供更便捷的日志功能。
 
-## Installation
+> **版本 0.2.0**: 升级至 log4js 6.x，性能大幅提升，支持 Node.js 22。
+
+## 安装
 ```
 npm install pomelo-logger
 ```
 
-## Features
-### log prefix
-besides category, you can output prefix as you like in your log  
-prefix can be filename, serverId, serverType, host etc  
-to use this feature, you just pass prefix params to getLogger function  
-```
+## 环境要求
+- Node.js >= 18.0.0
+
+## 功能特性
+
+### 日志前缀
+除了 category，你还可以自定义日志前缀，如文件名、serverId、serverType、host 等。
+
+```javascript
 var logger = require('pomelo-logger').getLogger(category, prefix1, prefix2, ...);
 ```
- log output msg will output with prefix ahead   
 
-### get line number in debug
-when in debug environment, you may want to get the line number of the log  
-to use this feature, add this code   
-```
+### 显示行号
+在调试环境下，你可能需要知道日志输出的代码行号。
+
+方式一：设置环境变量
+```javascript
 process.env.LOGGER_LINE = true;
 ```
 
-in pomelo, you just configure the log4js file and set **lineDebug** for true  
-```
+方式二：在配置文件中设置 `lineDebug`
+```json
 {
-  "appenders": [
-  ],
-
-  "levels": {
-  }, 
-
-  "replaceConsole": true,
-
+  "appenders": {
+    "console": { "type": "console" }
+  },
+  "categories": {
+    "default": { "appenders": ["console"], "level": "info" }
+  },
   "lineDebug": true
 }
 ```
 
-### log raw messages
-in raw message mode, your log message will be simply your messages, no prefix and color format strings  
-to use this feature, add this code  
-```
+### 原始消息模式
+在原始消息模式下，日志输出不包含前缀和颜色格式。
+
+方式一：设置环境变量
+```javascript
 process.env.RAW_MESSAGE = true;
 ```
 
-in pomelo, you just configure the log4js file and set **rawMessage** for true  
-```
+方式二：在配置文件中设置 `rawMessage`
+```json
 {
-  "appenders": [
-  ],
-
-  "levels": {
-  }, 
-
-  "replaceConsole": true,
-
+  "appenders": {
+    "console": { "type": "console" }
+  },
+  "categories": {
+    "default": { "appenders": ["console"], "level": "info" }
+  },
   "rawMessage": true
 }
 ```
 
-### dynamic configure logger level
-in pomelo logger configuration file log4js.json, you can add reloadSecs option. The reloadSecs means reload logger configuration file every given time. For example
-```
+### 动态调整日志级别
+在配置文件中添加 `reloadSecs` 选项，可以定时重新加载配置文件，实现动态调整日志级别。
+
+```json
 {
-	"reloadSecs": 30
+  "appenders": {
+    "console": { "type": "console" }
+  },
+  "categories": {
+    "default": { "appenders": ["console"], "level": "info" }
+  },
+  "reloadSecs": 30
 }
 ```
-the above configuration means reload the configuration file every 30 seconds. You can dynamic change the logger level, but it does not support dynamiclly changing configuration of appenders.
 
-## Example
-log.js
-```
+上述配置表示每 30 秒重新加载一次配置文件。注意：不支持动态修改 appender 配置。
+
+## 使用示例
+
+```javascript
 var logger = require('pomelo-logger').getLogger('log', __filename, process.pid);
 
 process.env.LOGGER_LINE = true;
-logger.info('test1');
-logger.warn('test2');
-logger.error('test3');
+
+logger.info('这是一条 info 日志');
+logger.warn('这是一条 warn 日志');
+logger.error('这是一条 error 日志');
+logger.debug('这是一条 debug 日志');
 ```
 
-## License
+## 配置示例
+
+```json
+{
+  "appenders": {
+    "console": {
+      "type": "console"
+    },
+    "file": {
+      "type": "dateFile",
+      "filename": "logs/pomelo.log",
+      "pattern": "-yyyy-MM-dd",
+      "alwaysIncludePattern": true
+    }
+  },
+  "categories": {
+    "default": {
+      "appenders": ["console"],
+      "level": "info"
+    },
+    "pomelo": {
+      "appenders": ["console", "file"],
+      "level": "debug"
+    }
+  },
+  "lineDebug": false,
+  "replaceConsole": true
+}
+```
+
+## 从 0.1.x 迁移
+
+### 配置格式变更
+
+旧格式 (v0.1.x):
+```json
+{
+  "appenders": [
+    { "type": "console" },
+    { "type": "file", "filename": "app.log", "category": "app" }
+  ],
+  "levels": { "app": "DEBUG" }
+}
+```
+
+新格式 (v0.2.0+):
+```json
+{
+  "appenders": {
+    "console": { "type": "console" },
+    "file": { "type": "file", "filename": "app.log" }
+  },
+  "categories": {
+    "default": { "appenders": ["console"], "level": "INFO" },
+    "app": { "appenders": ["console", "file"], "level": "DEBUG" }
+  }
+}
+```
+
+> 注意：库会尝试自动转换旧配置格式，但建议更新配置文件以获得最佳效果。
+
+### 废弃的 API
+
+以下方法在 log4js 6.x 中已废弃，调用时会输出警告：
+- `addAppender()` - 请使用 `configure()` 代替
+- `loadAppender()` - 在 log4js 6.x 中不再需要
+- `clearAppenders()` - 请使用 `configure()` 代替
+- `replaceConsole()` / `restoreConsole()` - 在 log4js 6.x 中已废弃
+- `getDefaultLogger()` - 请使用 `getLogger()` 不带参数
+
+## 更新日志
+
+查看 [CHANGELOG.md](CHANGELOG.md) 获取完整的更新历史。
+
+## 许可证
+
 (The MIT License)
 
 Copyright (c) 2012-2013 NetEase, Inc. and other contributors

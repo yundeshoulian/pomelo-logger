@@ -1,12 +1,31 @@
 {
-    "name": "pomelo-logger",
-    "version": "0.1.7",
-    "private": false,
-    "dependencies": {
-        "log4js": "0.6.21"
-    },
-    "devDependencies": {
-        "should": ">=0.0.1",
-        "mocha": ">=0.0.1"
-    }
+  "name": "pomelo-logger",
+  "version": "0.2.0",
+  "description": "A log4js wrapper for pomelo with improved performance and Node.js 22 support",
+  "private": false,
+  "main": "index.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "test": "mocha test/*.js"
+  },
+  "dependencies": {
+    "log4js": "^6.9.1"
+  },
+  "devDependencies": {
+    "should": "^13.2.3",
+    "mocha": "^10.8.2"
+  },
+  "keywords": [
+    "pomelo",
+    "log4js",
+    "logger",
+    "logging"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NetEase/pomelo-logger"
+  },
+  "license": "MIT"
 }
